@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Live demo · workflow-doc-agent</title>
+  <meta name="description" content="Watch the workflow-doc-agent run end-to-end in your browser. Simulated, no API keys." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link rel="stylesheet" href="assets/demo.css" />
+</head>
+<body class="hero-bg">
+
+  <header class="border-b border-[color:var(--border)]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-semibold">
+        <span class="inline-block w-7 h-7 rounded-md" style="background: linear-gradient(135deg,#7c8cff,#5eead4);"></span>
+        workflow-doc-agent
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a data-page="index.html" href="index.html">Overview</a>
+        <a data-page="architecture.html" href="architecture.html">Architecture</a>
+        <a data-page="cost.html" href="cost.html">Cost &amp; evals</a>
+        <a data-page="demo.html" href="demo.html">Live demo</a>
+        <a data-page="sample.html" href="sample.html">Sample output</a>
+        <a class="btn btn-ghost" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">GitHub →</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto px-6 pt-12 pb-6">
+    <div class="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+      <div>
+        <div class="eyebrow mb-2">Live demo</div>
+        <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">Watch the agent run end-to-end</h1>
+        <p class="text-[color:var(--text-mute)] mt-3 max-w-2xl">
+          The same loop you saw on the architecture page, replayed in your browser
+          with realistic timings and a live cost tracker. No API keys, no network
+          calls. Hit run and watch the four stages light up.
+        </p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btn-run"   class="btn btn-primary">▶ Run demo</button>
+        <button id="btn-reset" class="btn btn-ghost">Reset</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Top bar: stage timeline + cost meter -->
+  <section class="max-w-6xl mx-auto px-6 pb-6">
+    <div class="card p-5">
+      <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-6 items-center">
+        <!-- Stage timeline -->
+        <div class="stage-timeline" id="stage-timeline">
+          <div class="step" data-step="discovery">
+            <div class="step-dot"></div>
+            <div class="step-label">Discover</div>
+          </div>
+          <div class="step-bar"></div>
+          <div class="step" data-step="parse">
+            <div class="step-dot"></div>
+            <div class="step-label">Parse</div>
+          </div>
+          <div class="step-bar"></div>
+          <div class="step" data-step="summary">
+            <div class="step-dot"></div>
+            <div class="step-label">Summarize</div>
+          </div>
+          <div class="step-bar"></div>
+          <div class="step" data-step="answers">
+            <div class="step-dot"></div>
+            <div class="step-label">Answer</div>
+          </div>
+          <div class="step-bar"></div>
+          <div class="step" data-step="document">
+            <div class="step-dot"></div>
+            <div class="step-label">Document</div>
+          </div>
+          <div class="step-bar"></div>
+          <div class="step" data-step="done">
+            <div class="step-dot"></div>
+            <div class="step-label">Done</div>
+          </div>
+        </div>
+
+        <!-- Cost meter -->
+        <div class="cost-meter">
+          <div class="text-[11px] text-[color:var(--text-mute)] font-mono uppercase tracking-wider">Spend / Budget</div>
+          <div class="cost-row">
+            <div class="cost-num font-mono" id="cost-num">$0.0000</div>
+            <div class="cost-budget font-mono">/ $0.5000</div>
+          </div>
+          <div class="cost-bar"><div class="cost-fill" id="cost-fill"></div></div>
+          <div class="text-[11px] text-[color:var(--text-mute)] font-mono mt-1" id="cost-detail">0 calls · 0 in / 0 out tok</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main grid: folder + terminal + agent state -->
+  <section class="max-w-6xl mx-auto px-6 pb-10">
+    <div class="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4">
+
+      <!-- Left: folder picker -->
+      <div class="card p-5">
+        <div class="eyebrow mb-3">Input folder</div>
+        <div class="folder-tree" id="folder-tree">
+          <div class="tree-line"><span class="tree-icon">▸</span><span class="text-white">samples/</span></div>
+          <div class="tree-line ml-4"><span class="tree-icon">▾</span><span class="text-white">revenue_forecast/</span></div>
+          <div class="tree-line ml-8" data-file="py">
+            <span class="tree-icon text-[color:var(--accent)]">●</span>
+            <span class="font-mono text-[13px]">forecast_pipeline.py</span>
+          </div>
+          <div class="tree-line ml-8" data-file="csv">
+            <span class="tree-icon text-[color:var(--text-mute)]">●</span>
+            <span class="font-mono text-[13px]">input_data.csv</span>
+          </div>
+          <div class="tree-line ml-8" data-file="xlsx">
+            <span class="tree-icon text-[color:var(--accent-2)]">●</span>
+            <span class="font-mono text-[13px]">monthly_revenue.xlsx</span>
+          </div>
+        </div>
+
+        <div class="mt-5 pt-4 border-t border-[color:var(--border)]">
+          <div class="eyebrow mb-2">Provider</div>
+          <div class="provider-toggle">
+            <button class="provider-btn active" data-provider="gemini">
+              <span class="dot-color" style="background:#7c8cff"></span> Gemini
+            </button>
+            <button class="provider-btn" data-provider="claude">
+              <span class="dot-color" style="background:#d97706"></span> Claude
+            </button>
+          </div>
+          <div class="text-[11px] text-[color:var(--text-mute)] mt-2 font-mono" id="provider-detail">
+            flash → flash · same loop, one env var
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: terminal -->
+      <div class="card terminal">
+        <div class="terminal-header">
+          <div class="dots"><span></span><span></span><span></span></div>
+          <div class="terminal-title font-mono">workflow-doc run samples/revenue_forecast --provider <span id="hdr-provider">gemini</span></div>
+        </div>
+        <div class="terminal-body" id="terminal">
+          <div class="line dim">$ workflow-doc run samples/revenue_forecast --provider <span class="hdr-provider">gemini</span> --budget 0.50 --non-interactive</div>
+          <div class="line dim">Press ▶ Run demo to start.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stage details + final doc reveal -->
+  <section class="max-w-6xl mx-auto px-6 pb-16">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <!-- Pydantic stream -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="eyebrow">Stage 1 · WorkflowSummary (cheap model)</div>
+          <span class="pill" id="pill-stage1"><span class="dot"></span>idle</span>
+        </div>
+        <pre class="code" id="json-summary">// awaiting run...</pre>
+      </div>
+
+      <!-- Clarifying questions -->
+      <div class="card p-5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="eyebrow">Clarifying questions (defaults applied)</div>
+          <span class="pill" id="pill-q"><span class="dot"></span>idle</span>
+        </div>
+        <ol class="qa-list" id="qa-list">
+          <li class="dim">Questions appear here once stage 1 completes.</li>
+        </ol>
+      </div>
+    </div>
+
+    <!-- Final doc reveal -->
+    <div class="card p-6 mt-4">
+      <div class="flex items-center justify-between mb-4">
+        <div class="eyebrow">Stage 2 · FinalDoc.to_markdown() (step-up model)</div>
+        <span class="pill" id="pill-stage2"><span class="dot"></span>idle</span>
+      </div>
+      <div id="final-doc" class="final-doc dim">
+        The generated runbook will reveal here, section by section.
+      </div>
+    </div>
+  </section>
+
+  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-[color:var(--border)] text-sm">
+    Built by Nader Mohamed · MIT licensed ·
+    <a class="underline" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">github.com/Nadercr7/workflow-doc-agent</a>
+  </footer>
+
+  <script src="assets/main.js"></script>
+  <script src="assets/demo.js"></script>
+</body>
+</html>
