@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cost &amp; evals · workflow-doc-agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="hero-bg">
+
+  <header class="border-b border-[color:var(--border)]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-semibold">
+        <span class="inline-block w-7 h-7 rounded-md" style="background: linear-gradient(135deg,#7c8cff,#5eead4);"></span>
+        workflow-doc-agent
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a data-page="index.html" href="index.html">Overview</a>
+        <a data-page="architecture.html" href="architecture.html">Architecture</a>
+        <a data-page="cost.html" href="cost.html">Cost &amp; evals</a>
+        <a data-page="sample.html" href="sample.html">Sample output</a>
+        <a class="btn btn-ghost" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">GitHub →</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <div class="eyebrow mb-2">Cost &amp; evals</div>
+    <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">Designed to scale to many, many workflows</h1>
+    <p class="text-[color:var(--text-mute)] mt-3 max-w-2xl">
+      A single run is cheap by accident. A thousand runs a month are cheap by design.
+      The cost tracker, the model routing, and the eval harness exist so the second
+      number stays a true claim instead of a hopeful one.
+    </p>
+  </section>
+
+  <!-- Pricing table -->
+  <section class="max-w-6xl mx-auto px-6 pb-16">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card p-6">
+        <h3 class="text-white font-semibold mb-3">Per-million-token prices</h3>
+        <table class="clean">
+          <thead>
+            <tr><th>Model</th><th>Input</th><th>Output</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="font-mono text-white">claude-haiku-4-5</td><td>$1.00</td><td>$5.00</td></tr>
+            <tr><td class="font-mono text-white">claude-sonnet-4-5</td><td>$3.00</td><td>$15.00</td></tr>
+            <tr><td class="font-mono text-white">gemini-2.5-flash</td><td>$0.30</td><td>$2.50</td></tr>
+            <tr><td class="font-mono text-white">gemini-2.5-pro</td><td>$1.25</td><td>$10.00</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-[color:var(--text-mute)] mt-3">Edit the dict in <code class="inline">cost.py</code> when prices change.</p>
+      </div>
+
+      <div class="card p-6">
+        <h3 class="text-white font-semibold mb-3">Routing</h3>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed mb-3">
+          Cheap stages run on the small model. Final-doc generation steps up to the larger model.
+          Most workflows only need the cheap path; the upgrade is one-line revertible.
+        </p>
+        <pre class="code">_ROUTING = {
+  ("gemini", "summary"):    "gemini-2.5-flash",
+  ("gemini", "questions"):  "gemini-2.5-flash",
+  ("gemini", "final_doc"):  "gemini-2.5-pro",
+  ("claude", "summary"):    "claude-haiku-4-5",
+  ("claude", "questions"):  "claude-haiku-4-5",
+  ("claude", "final_doc"):  "claude-sonnet-4-5",
+}</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Live run -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="eyebrow mb-2">Live run</div>
+    <h2 class="text-2xl md:text-3xl font-semibold text-white mb-6">What a single run looks like</h2>
+    <div class="card p-6">
+      <pre class="code">[1/3] Summarizing with gemini-2.5-flash...
+[3/3] Generating doc with gemini-2.5-flash...
+
+Wrote: outputs/revenue_forecast_gemini.md
+Total: $0.0048 across 2 call(s). Budget: $0.50. Headroom: 99.0%.
+capability_eval: PASS (9/9)</pre>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-6">
+        <div class="card-soft p-4 stat">
+          <div class="num">2</div>
+          <div class="label mt-1">Calls per run</div>
+        </div>
+        <div class="card-soft p-4 stat">
+          <div class="num">$0.0048</div>
+          <div class="label mt-1">Total spend</div>
+        </div>
+        <div class="card-soft p-4 stat">
+          <div class="num">99.0%</div>
+          <div class="label mt-1">Budget headroom</div>
+        </div>
+        <div class="card-soft p-4 stat">
+          <div class="num">9 / 9</div>
+          <div class="label mt-1">Eval checks</div>
+        </div>
+      </div>
+
+      <p class="text-sm text-[color:var(--text-mute)] mt-6 leading-relaxed">
+        At half a cent per workflow, 5,000 workflows a month cost about
+        <span class="text-white">$25</span> in LLM spend. The unit economics
+        are the actual point of the abstraction.
+      </p>
+    </div>
+  </section>
+
+  <!-- Budget enforcement -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="grid md:grid-cols-2 gap-6 items-start">
+      <div>
+        <div class="eyebrow mb-2">Hard ceiling</div>
+        <h2 class="text-2xl md:text-3xl font-semibold text-white mb-4">Budget enforcement that actually fires</h2>
+        <p class="text-[color:var(--text-mute)] leading-relaxed">
+          A run that would have cost $1.20 stops at the first call past the
+          budget, not after burning all $1.20. The tracker is a frozen
+          dataclass, so every call is in an immutable audit trail by default.
+        </p>
+      </div>
+      <pre class="code">@dataclass(frozen=True)
+class CostTracker:
+    budget_limit_usd: float
+    records: tuple[CostRecord, ...] = ()
+
+    def add(self, record: CostRecord) -> "CostTracker":
+        return CostTracker(
+            self.budget_limit_usd,
+            self.records + (record,),
+        )
+
+# in the agent loop
+if cost.over_budget:
+    raise BudgetExceeded(cost.summary_line())</pre>
+    </div>
+  </section>
+
+  <!-- Eval harness -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="eyebrow mb-2">Eval-driven development</div>
+    <h2 class="text-2xl md:text-3xl font-semibold text-white mb-6">Two evals, both runnable in seconds</h2>
+
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card p-6">
+        <h3 class="text-white font-semibold mb-2">capability_eval.py</h3>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed mb-3">
+          Pass/fail checks on the generated Markdown. Currently 9 of 9 on the
+          finance sample.
+        </p>
+        <ul class="text-sm text-[color:var(--text-mute)] space-y-1 list-disc list-inside">
+          <li>File exists</li>
+          <li>Has H1 title</li>
+          <li>Has Overview, Schedule, Inputs, Outputs, Runbook, Open Questions</li>
+          <li>Length is non-trivial (≥ 600 chars)</li>
+        </ul>
+      </div>
+      <div class="card p-6">
+        <h3 class="text-white font-semibold mb-2">regression_eval.py</h3>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed mb-3">
+          Diffs the latest output against a checked-in baseline. Today it's a
+          placeholder that compares baseline against itself.
+        </p>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed">
+          In CI, it gates merges: a prompt edit that drops a Pydantic field
+          or rewrites a section into something shorter and worse fails the diff.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-[color:var(--border)]">
+    Built by Nader Mohamed · MIT licensed ·
+    <a class="underline" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">github.com/Nadercr7/workflow-doc-agent</a>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>

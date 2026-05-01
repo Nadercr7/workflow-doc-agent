@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Architecture · workflow-doc-agent</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="hero-bg">
+
+  <header class="border-b border-[color:var(--border)]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-semibold">
+        <span class="inline-block w-7 h-7 rounded-md" style="background: linear-gradient(135deg,#7c8cff,#5eead4);"></span>
+        workflow-doc-agent
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a data-page="index.html" href="index.html">Overview</a>
+        <a data-page="architecture.html" href="architecture.html">Architecture</a>
+        <a data-page="cost.html" href="cost.html">Cost &amp; evals</a>
+        <a data-page="sample.html" href="sample.html">Sample output</a>
+        <a class="btn btn-ghost" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">GitHub →</a>
+      </nav>
+    </div>
+  </header>
+
+  <section class="max-w-6xl mx-auto px-6 pt-16 pb-10">
+    <div class="eyebrow mb-2">Architecture</div>
+    <h1 class="text-3xl md:text-4xl font-semibold text-white tracking-tight">The agent loop</h1>
+    <p class="text-[color:var(--text-mute)] mt-3 max-w-2xl">
+      Three stages, each one validated by a Pydantic model. Every arrow is typed.
+      Every LLM call returns a validated instance or raises. Nothing parses raw
+      strings outside the providers themselves.
+    </p>
+  </section>
+
+  <!-- Diagram -->
+  <section class="max-w-3xl mx-auto px-6 pb-16">
+    <div class="diagram">
+      <div class="stage">
+        <div class="num">In</div>
+        <div>
+          <h4>Folder of work</h4>
+          <p>One <code class="inline">.py</code> file plus one <code class="inline">.xlsx</code> file. Discovered with <code class="inline">discover_workflow_files()</code>.</p>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="stage">
+        <div class="num">1</div>
+        <div>
+          <h4>readers.py · pre-digest</h4>
+          <p>AST parse for the Python file (imports, functions, classes, top-level calls). openpyxl read-only for the workbook (sheets, headers, sample rows). Frozen dataclasses; no model sees the raw file.</p>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="stage">
+        <div class="num">2</div>
+        <div>
+          <h4>providers.parse(output_format=WorkflowSummary)</h4>
+          <p>Cheap stage. Returns a validated <code class="inline">WorkflowSummary</code> with three to five <code class="inline">clarifying_questions</code>. Models: <code class="inline">gemini-2.5-flash</code> or <code class="inline">claude-haiku-4-5</code>.</p>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="stage">
+        <div class="num">3</div>
+        <div>
+          <h4>collect_answers</h4>
+          <p>Human in the loop with Rich prompts, or <code class="inline">--non-interactive</code> for unattended runs. Result is a <code class="inline">WorkflowAnswers</code> object, one answer per question id.</p>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="stage">
+        <div class="num">4</div>
+        <div>
+          <h4>providers.parse(output_format=FinalDoc)</h4>
+          <p>Step-up stage. Takes summary plus answers, returns a <code class="inline">FinalDoc</code>. Models: <code class="inline">gemini-2.5-pro</code> or <code class="inline">claude-sonnet-4-5</code>.</p>
+        </div>
+      </div>
+      <div class="arrow">↓</div>
+
+      <div class="stage">
+        <div class="num">Out</div>
+        <div>
+          <h4>FinalDoc.to_markdown() · written to disk</h4>
+          <p>Lands at <code class="inline">outputs/&lt;workflow&gt;_&lt;provider&gt;.md</code>. Sections: Overview, Schedule, Inputs, Outputs, Runbook, Open Questions. Ready to publish.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Schemas -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="eyebrow mb-2">Schemas</div>
+    <h2 class="text-2xl md:text-3xl font-semibold text-white mb-6">Every output is a Pydantic model</h2>
+
+    <div class="card overflow-x-auto">
+      <table class="clean">
+        <thead>
+          <tr>
+            <th>Model</th>
+            <th>Stage</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="font-mono text-white">PythonFileSummary</td>
+            <td class="text-[color:var(--text-mute)]">internal</td>
+            <td class="text-[color:var(--text-mute)]">One-line purpose, inputs, outputs, deps</td>
+          </tr>
+          <tr>
+            <td class="font-mono text-white">ExcelFileSummary</td>
+            <td class="text-[color:var(--text-mute)]">internal</td>
+            <td class="text-[color:var(--text-mute)]">Sheets, columns, sample-row guesses</td>
+          </tr>
+          <tr>
+            <td class="font-mono text-white">WorkflowSummary</td>
+            <td class="text-[color:var(--text-mute)]">stage 1 output</td>
+            <td class="text-[color:var(--text-mute)]">Includes 3 to 5 clarifying_questions</td>
+          </tr>
+          <tr>
+            <td class="font-mono text-white">WorkflowAnswers</td>
+            <td class="text-[color:var(--text-mute)]">human input</td>
+            <td class="text-[color:var(--text-mute)]">One Answer per Question.id</td>
+          </tr>
+          <tr>
+            <td class="font-mono text-white">FinalDoc</td>
+            <td class="text-[color:var(--text-mute)]">stage 2 output</td>
+            <td class="text-[color:var(--text-mute)]">Has to_markdown() for the published file</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Provider details -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="card p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="pill"><span class="dot"></span>Live demo path</span>
+        </div>
+        <h3 class="text-white text-lg font-semibold mb-2">Gemini provider</h3>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed mb-4">
+          Schema is rendered into the system prompt with
+          <code class="inline">response_mime_type="application/json"</code>. The text
+          response is parsed with <code class="inline">model_validate_json()</code>.
+          Pydantic emits keys Gemini's validator rejects, so we strip those for the prompt
+          copy and validate client-side. Same guarantee, fewer moving parts.
+        </p>
+        <pre class="code">resp = client.models.generate_content(
+    model=model,
+    contents=user,
+    config=GenerateContentConfig(
+        system_instruction=full_system,
+        response_mime_type="application/json",
+        max_output_tokens=max_tokens,
+    ),
+)
+parsed = output_format.model_validate_json(resp.text)</pre>
+      </div>
+
+      <div class="card p-6">
+        <div class="flex items-center gap-2 mb-3">
+          <span class="pill warn"><span class="dot"></span>Drop-in swap</span>
+        </div>
+        <h3 class="text-white text-lg font-semibold mb-2">Claude provider</h3>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed mb-4">
+          Each Pydantic schema becomes the <code class="inline">input_schema</code> of a
+          single forced tool call. Claude is required to call that tool, so the response
+          is structured by construction. Works across all current Claude models.
+        </p>
+        <pre class="code">resp = client.messages.create(
+    model=model,
+    tools=[{
+        "name": tool_name,
+        "input_schema": output_format.model_json_schema(),
+    }],
+    tool_choice={"type": "tool", "name": tool_name},
+    messages=[{"role": "user", "content": user}],
+)
+parsed = output_format.model_validate(resp.content[0].input)</pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- Failure modes -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="eyebrow mb-2">Failure handling</div>
+    <h2 class="text-2xl md:text-3xl font-semibold text-white mb-6">What happens when things go wrong</h2>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div class="card-soft p-5">
+        <h4 class="text-white font-medium mb-1">API transient errors</h4>
+        <p class="text-sm text-[color:var(--text-mute)]">Timeouts, 5xx, rate-limits. Retried with exponential backoff in <code class="inline">retry.py</code>.</p>
+      </div>
+      <div class="card-soft p-5">
+        <h4 class="text-white font-medium mb-1">Budget exceeded</h4>
+        <p class="text-sm text-[color:var(--text-mute)]">The next call after the running total clears the budget raises <code class="inline">BudgetExceeded</code>. Run halts.</p>
+      </div>
+      <div class="card-soft p-5">
+        <h4 class="text-white font-medium mb-1">Schema mismatch</h4>
+        <p class="text-sm text-[color:var(--text-mute)]"><code class="inline">model_validate_json</code> raises with the full validation error, pointing at the exact field.</p>
+      </div>
+      <div class="card-soft p-5">
+        <h4 class="text-white font-medium mb-1">Code-fenced JSON from Gemini</h4>
+        <p class="text-sm text-[color:var(--text-mute)]">Stripped automatically by <code class="inline">_strip_code_fences</code> before retry.</p>
+      </div>
+    </div>
+  </section>
+
+  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-[color:var(--border)]">
+    Built by Nader Mohamed · MIT licensed ·
+    <a class="underline" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">github.com/Nadercr7/workflow-doc-agent</a>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>

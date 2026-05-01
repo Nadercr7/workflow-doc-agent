@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>workflow-doc-agent</title>
+  <meta name="description" content="An agent that documents production Python workflows. Same loop runs on Gemini or Claude." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="assets/styles.css" />
+</head>
+<body class="hero-bg">
+
+  <!-- Nav -->
+  <header class="border-b border-[color:var(--border)]">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="flex items-center gap-2 text-white font-semibold">
+        <span class="inline-block w-7 h-7 rounded-md" style="background: linear-gradient(135deg,#7c8cff,#5eead4);"></span>
+        workflow-doc-agent
+      </a>
+      <nav class="hidden md:flex items-center gap-6 text-sm">
+        <a data-page="index.html" href="index.html">Overview</a>
+        <a data-page="architecture.html" href="architecture.html">Architecture</a>
+        <a data-page="cost.html" href="cost.html">Cost &amp; evals</a>
+        <a data-page="sample.html" href="sample.html">Sample output</a>
+        <a class="btn btn-ghost" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">GitHub →</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="max-w-6xl mx-auto px-6 pt-20 pb-16">
+    <div class="flex flex-col items-start gap-5 max-w-3xl">
+      <span class="pill"><span class="dot"></span>Live repo · 9/9 tests · 9/9 capability eval</span>
+      <h1 class="text-4xl md:text-5xl font-semibold tracking-tight text-white leading-tight">
+        An agent that documents production workflows, before anyone has to read the code.
+      </h1>
+      <p class="text-lg text-[color:var(--text-mute)] leading-relaxed">
+        Point it at a folder with a Python file and an Excel report. It pre-digests both,
+        asks three to five clarifying questions about schedule and ownership, and writes
+        a publishable Markdown runbook. The same loop runs on Gemini or Claude with one
+        env var. Half a cent per workflow.
+      </p>
+      <div class="flex flex-wrap gap-3 mt-2">
+        <a class="btn btn-primary" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">
+          View the repo
+        </a>
+        <a class="btn btn-ghost" href="architecture.html">How it works</a>
+        <a class="btn btn-ghost" href="sample.html">See sample output</a>
+      </div>
+    </div>
+
+    <!-- Stat row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-14">
+      <div class="card p-5 stat">
+        <div class="num">$0.0048</div>
+        <div class="label mt-1">Cost per live run on Gemini Flash</div>
+      </div>
+      <div class="card p-5 stat">
+        <div class="num">2</div>
+        <div class="label mt-1">Providers behind one interface</div>
+      </div>
+      <div class="card p-5 stat">
+        <div class="num">9 / 9</div>
+        <div class="label mt-1">Capability eval checks pass</div>
+      </div>
+      <div class="card p-5 stat">
+        <div class="num">~5 min</div>
+        <div class="label mt-1">From clone to first generated doc</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- What it does -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="grid md:grid-cols-3 gap-6">
+      <div>
+        <div class="eyebrow mb-3">01 / read</div>
+        <h3 class="text-xl text-white font-semibold mb-2">Read the folder safely</h3>
+        <p class="text-[color:var(--text-mute)] text-sm leading-relaxed">
+          The Python file is parsed with <code class="inline">ast</code>, the Excel file is
+          opened with <code class="inline">openpyxl</code> in read-only mode. No code is
+          executed, no full file is dumped to the model. Only structured digests cross
+          the wire.
+        </p>
+      </div>
+      <div>
+        <div class="eyebrow mb-3">02 / summarize and ask</div>
+        <h3 class="text-xl text-white font-semibold mb-2">Cheap model does the extraction</h3>
+        <p class="text-[color:var(--text-mute)] text-sm leading-relaxed">
+          A small model (Flash or Haiku) returns a Pydantic-validated summary plus three
+          to five clarifying questions about schedule, owner, and downstream consumers.
+          Wrong shape fails fast, before any expensive call is made.
+        </p>
+      </div>
+      <div>
+        <div class="eyebrow mb-3">03 / document</div>
+        <h3 class="text-xl text-white font-semibold mb-2">Step-up model writes the runbook</h3>
+        <p class="text-[color:var(--text-mute)] text-sm leading-relaxed">
+          A larger model (Pro or Sonnet) takes the summary plus your answers and emits a
+          <code class="inline">FinalDoc</code> with Overview, Schedule, Inputs, Outputs,
+          Runbook, and Open Questions. Rendered to Markdown, ready to publish.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quickstart -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="flex items-end justify-between mb-6">
+      <div>
+        <div class="eyebrow mb-2">Quickstart</div>
+        <h2 class="text-2xl md:text-3xl font-semibold text-white">From zero to a generated doc in five minutes</h2>
+      </div>
+      <button class="btn btn-ghost text-xs" data-copy="#qs">Copy</button>
+    </div>
+    <pre class="code" id="qs">git clone https://github.com/Nadercr7/workflow-doc-agent
+cd workflow-doc-agent
+py -3.13 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -e ".[dev]"
+copy .env.example .env
+# put GEMINI_API_KEY=... or ANTHROPIC_API_KEY=... in .env
+
+python samples\revenue_forecast\forecast_pipeline.py
+workflow-doc run samples\revenue_forecast --provider gemini --budget 0.50 --non-interactive
+# -> outputs/revenue_forecast_gemini.md</pre>
+  </section>
+
+  <!-- Why two providers -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="grid md:grid-cols-2 gap-10 items-start">
+      <div>
+        <div class="eyebrow mb-2">Provider abstraction</div>
+        <h2 class="text-2xl md:text-3xl font-semibold text-white mb-4">One interface, two implementations</h2>
+        <p class="text-[color:var(--text-mute)] leading-relaxed">
+          The agent never imports <code class="inline">anthropic</code> or
+          <code class="inline">google.genai</code> directly. Both providers satisfy a small
+          <code class="inline">LLMProvider</code> Protocol. Switching is one env var.
+        </p>
+        <p class="text-[color:var(--text-mute)] leading-relaxed mt-3">
+          Vendor lock-in is a real cost. The abstraction is cheap, and it means the day
+          Anthropic raises prices or Google ships a faster Flash, the same agent code keeps
+          working.
+        </p>
+      </div>
+      <pre class="code">class LLMProvider(Protocol):
+    name: str
+
+    def parse(
+        self, *,
+        system: str,
+        user: str,
+        output_format: Type[T],
+        model: str,
+        max_tokens: int = 2048,
+    ) -> tuple[T, CostRecord]:
+        ...</pre>
+    </div>
+  </section>
+
+  <!-- Where it fits -->
+  <section class="max-w-6xl mx-auto px-6 py-16 border-t border-[color:var(--border)]">
+    <div class="eyebrow mb-2">Production fit</div>
+    <h2 class="text-2xl md:text-3xl font-semibold text-white mb-6">Designed to slot in, not to be the centerpiece</h2>
+    <div class="grid md:grid-cols-3 gap-4">
+      <div class="card p-5">
+        <h4 class="text-white font-medium mb-2">Dagster trigger</h4>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed">
+          Run <code class="inline">run_agent</code> per workflow folder on a cron, or per
+          file change.
+        </p>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-white font-medium mb-2">Box / Drive watcher</h4>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed">
+          A new <code class="inline">.py</code> or <code class="inline">.xlsx</code> kicks
+          off a fresh run, and the cost ceiling keeps the bill bounded.
+        </p>
+      </div>
+      <div class="card p-5">
+        <h4 class="text-white font-medium mb-2">Notion / GitHub publish</h4>
+        <p class="text-sm text-[color:var(--text-mute)] leading-relaxed">
+          The agent emits Markdown. Publishing is a separate, swappable adapter. Notion,
+          GitHub, Confluence, all the same to the agent.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="max-w-6xl mx-auto px-6 py-10 border-t border-[color:var(--border)] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div>
+      Built by Nader Mohamed · MIT licensed ·
+      <a class="underline" href="https://github.com/Nadercr7/workflow-doc-agent" target="_blank" rel="noopener">github.com/Nadercr7/workflow-doc-agent</a>
+    </div>
+    <div class="flex gap-4">
+      <a href="architecture.html">Architecture</a>
+      <a href="cost.html">Cost &amp; evals</a>
+      <a href="sample.html">Sample output</a>
+    </div>
+  </footer>
+
+  <script src="assets/main.js"></script>
+</body>
+</html>
