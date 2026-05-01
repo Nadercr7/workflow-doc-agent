@@ -4,6 +4,8 @@ A small agent that documents production Python workflows. Point it at a folder
 that contains a Python script and an Excel report, answer a few clarifying
 questions, and it writes a Markdown runbook.
 
+**Visual walkthrough:** https://nadercr7.github.io/workflow-doc-agent/
+
 Built as a pre-call working prototype for an AI consulting engagement that
 needed exactly this loop:
 
