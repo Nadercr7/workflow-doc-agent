@@ -95,9 +95,10 @@ tests/
   test_readers.py
   test_cost_tracker.py
   test_providers.py        # Mocked SDKs, no network
-docs/
+notes/
   architecture.md          # Agent loop, schemas, where this slots in production
   cost-and-evals.md        # CostTracker maths and EDD philosophy
+docs/                      # Static walkthrough site (served by GitHub Pages)
 ```
 
 ## Tests
